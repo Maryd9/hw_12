@@ -1,38 +1,32 @@
 import allure
-from selene import by, browser
-from selene.support.shared.jquery_style import s
+from hw_12.pages.registration_page import RegistrationFormPage
 
 
-def test_decorator_steps():
-    open_main_page('/')
-    search_for_repository('eroshenkoam/allure-example')
-    go_to_repository('eroshenkoam/allure-example')
-    open_issue_tab()
-    should_see_issue_with_number('#76')
+@allure.title("Successful fill form")
+def test_student_registration_form():
+    with allure.step("Open registration form"):
+        registration_page = RegistrationFormPage()
 
+    with allure.step("Fill form"):
+        registration_page.open()
+        (
+            registration_page
+            .fill_first_name('Masha')
+            .fill_last_name('Www')
+            .fill_user_email('test@gmail.com')
+            .fill_gender('Female')
+            .fill_user_number('1234456789')
+            .fill_day_of_birth('1999', 'May', '11')
+            .fill_subject('Maths')
+            .fill_hobbies('Sports')
+            .fill_picture('picture.jpg')
+            .fill_current_address('Quitzon Common, South Kraigville')
+            .fill_state('NCR')
+            .fill_city('Delhi')
+            .click_submit()
+        )
 
-@allure.step("Открываем главную страницу")
-def open_main_page(url):
-    browser.open(url)
-
-
-@allure.step("Ищем репозиторий {repo}")
-def search_for_repository(repo):
-    s('.search-input').click()
-    s('#query-builder-test').send_keys(repo)
-    s('#query-builder-test').submit()
-
-
-@allure.step("Переходим по ссылке репозитория {repo}")
-def go_to_repository(repo):
-    s(by.link_text(repo)).click()
-
-
-@allure.step("Открываем таб issues")
-def open_issue_tab():
-    s('#issues-tab').click()
-
-
-@allure.step("Проверяем наличие issue с номером {number}")
-def should_see_issue_with_number(number):
-    s(by.partial_text(number)).click()
+    with allure.step("Check form results"):
+        registration_page.should_have_registered('Masha Www', 'test@gmail.com', 'Female', '1234456789', '11 May,1999',
+                                                 'Maths', 'Sports', 'picture.jpg',
+                                                 'Quitzon Common, South Kraigville', 'NCR Delhi')

@@ -1,7 +1,13 @@
+import os
 import pytest
-from selene import browser
+from selene import Browser, Config
 from dotenv import load_dotenv
+from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+
+from utils import attach
+
+DEFAULT_BROWSER_VERSION = '100.0'
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -9,24 +15,29 @@ def load_env():
     load_dotenv()
 
 
-@pytest.fixture(scope="function", autouse=True)
-def open_browser():
-    browser.config.window_width = 1366
-    browser.config.window_height = 768
-    browser.config.base_url = 'https://github.com'
+def pytest_addoption(parser):
+    parser.addoption(
+        '--browser_version',
+        default='122.0'
+    )
 
+
+@pytest.fixture(scope="function", autouse=True)
+def setup_browser(request):
+    browser_version = request.config.getoption('--browser_version')
+    browser_version = browser_version if browser_version != '' else DEFAULT_BROWSER_VERSION
     options = Options()
     selenoid_capabilities = {
-        "browserName": "chrome",
-        "browserVersion": "122.0",
+        "browserName": 'chrome',
+        "browserVersion": browser_version,
         "selenoid:options": {
             "enableVNC": True,
             "enableVideo": True
         }
     }
-    selenoid_login = os.getenv("SELENOID_LOGIN")
-    selenoid_pass = os.getenv("SELENOID_PASS")
-    selenoid_url = os.getenv("SELENOID_URL")
+    selenoid_login = os.getenv("LOGIN")
+    selenoid_pass = os.getenv("PASS")
+    selenoid_url = os.getenv("URL")
 
     options.capabilities.update(selenoid_capabilities)
     driver = webdriver.Remote(
@@ -34,6 +45,17 @@ def open_browser():
         options=options
     )
 
+    browser = Browser(Config(driver))
+    browser.config.window_width = 1366
+    browser.config.window_height = 768
+
+    browser.config.base_url = 'https://demoqa.com'
+
     yield
+
+    attach.add_screenshot(browser)
+    attach.add_logs(browser)
+    attach.add_html(browser)
+    attach.add_video(browser)
 
     browser.quit()
