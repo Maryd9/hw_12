@@ -1,4 +1,6 @@
 import os
+
+import allure
 import pytest
 from selene import browser
 from dotenv import load_dotenv
@@ -30,6 +32,10 @@ def setup_browser(request):
     browser.config.base_url = 'https://demoqa.com'
 
     browser_version = request.config.getoption('--browser_version') or DEFAULT_BROWSER_VERSION
+
+    with open('allure-results/environment.properties', 'w') as f:
+        f.write(f'browserVersion={browser_version}\n')
+
     options = Options()
     selenoid_capabilities = {
         "browserName": 'chrome',
