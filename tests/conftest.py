@@ -7,8 +7,6 @@ from selenium.webdriver.chrome.options import Options
 
 from utils import attach
 
-DEFAULT_BROWSER_VERSION = '100.0'
-
 
 @pytest.fixture(scope="session", autouse=True)
 def load_env():
@@ -30,7 +28,6 @@ def setup_browser(request):
     browser.config.base_url = 'https://demoqa.com'
 
     browser_version = request.config.getoption('--browser_version')
-    browser_version = browser_version if browser_version != '' else DEFAULT_BROWSER_VERSION
     options = Options()
     selenoid_capabilities = {
         "browserName": 'chrome',
